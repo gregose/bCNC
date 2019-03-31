@@ -1688,6 +1688,11 @@ class CNC:
 		# check if it is the same tool
 		if self.tool is None or self.tool == self._lastTool: return []
 
+		# skip first tool change
+		if self._lastTool == None:
+			self._lastTool = self.tool
+			return []
+
 		# create the necessary code
 		lines = []
 		lines.append("$g")	# remember state and populate variables, FIXME: move to ./controllers/_GenericController.py
@@ -1749,11 +1754,15 @@ class CNC:
 			lines.append("m0")	# feed hold
 
 		# restore state
-		lines.append("g90")		# restore mode
-		lines.append("g0 x[_x] y[_y]")	# ... x,y position
-		lines.append("g0 z[_z]")	# ... z position
-		lines.append("f[feed] [spindle]")# ... feed and spindle
-		lines.append("g4 p5")		# wait 5s for spindle to speed up
+		#lines.append("g90")		# restore mode
+		#lines.append("g0 x[_x] y[_y]")	# ... x,y position
+		#lines.append("g0 z[_z]")	# ... z position
+		#lines.append("f[feed] [spindle]")# ... feed and spindle
+		#lines.append("g4 p5")		# wait 5s for spindle to speed up
+
+		# restore to g28 position
+		lines.append("g28 g91 z0")
+		lines.append("g90")
 
 		# remember present tool
 		self._lastTool = self.tool
@@ -4040,7 +4049,7 @@ class GCode:
 					explain+=" offs "+str(abs(offset)-cutDiam/2.0)
 				if offset<0:
 					if adaptative:
-						explain+=" Adapt bit "+str(tooldiameter) 
+						explain+=" Adapt bit "+str(tooldiameter)
 					if overcut:
 						explain+=" overc"
 				newname = Block.operationName(path.name,explain)
@@ -4120,7 +4129,7 @@ class GCode:
 					explain+=" offs "+str(abs(offset)-cutDiam/2.0)
 				if offset<0:
 					if adaptative:
-						explain+=" Adapt bit "+str(tooldiameter) 
+						explain+=" Adapt bit "+str(tooldiameter)
 					if overcut:
 						explain+=" overc"
 				newname = Block.operationName(path.name,explain)
